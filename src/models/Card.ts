@@ -1,6 +1,30 @@
-import { Schema, model } from "mongoose";
+import { Schema, Types, model } from "mongoose";
 
-const cardSchema = new Schema(
+
+export interface ICard {
+  userId: Types.ObjectId;
+
+  front: string;
+  back: string;
+
+  due: Date;
+  stability: number;
+  difficulty: number;
+
+  elapsed_days: number;
+  scheduled_days: number;
+
+  reps: number;
+  lapses: number;
+
+  learning_steps: number;
+
+  state: number;
+
+  last_review: Date | null;
+}
+
+const cardSchema = new Schema<ICard>(
   {
     userId: {
       type: Schema.Types.ObjectId,
