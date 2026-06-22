@@ -30,7 +30,7 @@ export const reviewCard = async (
 
     const result = scheduler.next(
       card.toObject(),
-      new Date(),
+      new Date(), // simulation test part, ex: "2026-06-30T07:38:07.481Z"
       Number(rating) as Grade
     );
 
