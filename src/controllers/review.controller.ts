@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Card from "../models/Card";
 import ReviewLog from "../models/ReviewLog";
 
-import { fsrs, Grade, Rating } from "ts-fsrs";
+import { fsrs, Grade } from "ts-fsrs";
 
 const scheduler = fsrs();
 
@@ -13,6 +13,12 @@ export const reviewCard = async (
   try {
     const { id } = req.params;
     const { rating } = req.body;
+
+    if (![1, 2, 3, 4].includes(Number(rating))) {
+      return res.status(400).json({
+        message: "Rating must be 1, 2, 3, or 4",
+      });
+    }
 
     const card = await Card.findById(id);
 
@@ -25,23 +31,21 @@ export const reviewCard = async (
     const result = scheduler.next(
       card.toObject(),
       new Date(),
-      rating as Grade
+      Number(rating) as Grade
     );
 
-    await Card.findByIdAndUpdate(
-      id,
-      result.card
-    );
+    Object.assign(card, result.card);
+
+    await card.save();
 
     const reviewLog = await ReviewLog.create({
       cardId: card._id,
       userId: card.userId,
-
       ...result.log,
     });
 
-    res.json({
-      card: result.card,
+    res.status(200).json({
+      card,
       reviewLog,
     });
   } catch (error) {

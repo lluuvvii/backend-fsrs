@@ -12,7 +12,7 @@ const reviewLogSchema = new Schema(
       ref: "User",
       required: true,
     },
-    rating: Number,
+    rating: { type: Number, required: true },
     state: Number,
     due: Date,
     stability: Number,
