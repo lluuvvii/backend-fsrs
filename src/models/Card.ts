@@ -48,7 +48,7 @@ const cardSchema = new Schema<ICard>(
     lapses: Number,
     learning_steps: Number,
     state: Number,
-    last_review: Date,
+    last_review: { type: Date, default: null },
   },
   {
     timestamps: true,

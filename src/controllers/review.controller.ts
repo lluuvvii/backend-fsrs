@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Card from "../models/Card";
 import ReviewLog from "../models/ReviewLog";
 
-import { fsrs, Grade } from "ts-fsrs";
+import { fsrs, Grade, Rating } from "ts-fsrs";
 
 const scheduler = fsrs();
 
@@ -47,28 +47,6 @@ export const reviewCard = async (
   } catch (error) {
     res.status(500).json({
       message: "Review failed",
-      error,
-    });
-  }
-};
-
-export const getCardById = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const card = await Card.findById(req.params.id);
-
-    if (!card) {
-      return res.status(404).json({
-        message: "Card not found",
-      });
-    }
-
-    res.status(200).json(card);
-  } catch (error) {
-    res.status(500).json({
-      message: "Failed to get card",
       error,
     });
   }
