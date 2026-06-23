@@ -6,6 +6,91 @@ import { fsrs, Grade } from "ts-fsrs";
 
 const scheduler = fsrs();
 
+export const getReviewLogs = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const logs = await ReviewLog.find()
+      .sort({ review: -1 });
+
+    res.status(200).json(logs);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to get review logs",
+      error,
+    });
+  }
+};
+
+export const getReviewLogById = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const log = await ReviewLog.findById(
+      req.params.id
+    );
+
+    if (!log) {
+      return res.status(404).json({
+        message: "Review log not found",
+      });
+    }
+
+    res.status(200).json(log);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to get review log",
+      error,
+    });
+  }
+};
+
+export const getReviewLogsByUser = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { userId } = req.params;
+
+    const logs = await ReviewLog.find({
+      userId,
+    }).sort({
+      review: -1,
+    });
+
+    res.status(200).json(logs);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to get review logs",
+      error,
+    });
+  }
+};
+
+export const getReviewLogsByCard = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { cardId } = req.params;
+
+    const logs = await ReviewLog.find({
+      cardId,
+    }).sort({
+      review: -1,
+    });
+
+    res.status(200).json(logs);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to get review logs",
+      error,
+    });
+  }
+};
+
 export const reviewCard = async (
   req: Request,
   res: Response
