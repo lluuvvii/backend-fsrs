@@ -3,6 +3,7 @@ import cors from "cors";
 import cardRoutes from "./routes/card.routes";
 import userRoutes from "./routes/user.routes";
 import reviewRoutes from "./routes/review.routes";
+import deckRoutes from "./routes/deck.routes";
 
 const app = express();
 
@@ -18,5 +19,6 @@ app.get("/", (_, res) => {
 app.use("/cards", cardRoutes);
 app.use("/users", userRoutes);
 app.use("/reviews", reviewRoutes);
+app.use("/decks", deckRoutes);
 
 export default app;

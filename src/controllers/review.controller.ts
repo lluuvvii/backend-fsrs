@@ -3,6 +3,7 @@ import Card from "../models/Card";
 import ReviewLog from "../models/ReviewLog";
 
 import { fsrs, Grade } from "ts-fsrs";
+import Deck from "../models/Deck";
 
 const scheduler = fsrs();
 
@@ -113,9 +114,17 @@ export const reviewCard = async (
       });
     }
 
+    const deck = await Deck.findById(card.deckId);
+
+    if (!deck) {
+      return res.status(404).json({
+        message: "Deck not found",
+      });
+    }
+
     const result = scheduler.next(
       card.toObject(),
-      new Date(), // simulation test part, ex: "2026-06-30T07:38:07.481Z"
+      new Date("2026-07-20T14:45:26.176Z"), // simulation test part, ex: "2026-06-30T07:38:07.481Z"
       Number(rating) as Grade
     );
 
@@ -125,7 +134,7 @@ export const reviewCard = async (
 
     const reviewLog = await ReviewLog.create({
       cardId: card._id,
-      userId: card.userId,
+      userId: deck.userId,
       ...result.log,
     });
 

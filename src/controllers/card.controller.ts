@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Card from "../models/Card";
 import { createEmptyCard } from "ts-fsrs";
+import Deck from "../models/Deck";
 
 export const getCards = async (
   req: Request,
@@ -18,15 +19,15 @@ export const getCards = async (
   }
 };
 
-export const getCardsByUser = async (
+export const getCardsByDeck = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const { userId } = req.params;
+    const { deckId } = req.params;
 
     const cards = await Card.find({
-      userId,
+      deckId,
     });
 
     res.status(200).json(cards);
@@ -38,15 +39,15 @@ export const getCardsByUser = async (
   }
 };
 
-export const getDueCards = async (
+export const getDueCardsByDeck = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const { userId } = req.params;
+    const { deckId } = req.params;
 
     const cards = await Card.find({
-      userId,
+      deckId,
       due: {
         $lte: new Date(),
       },
@@ -88,12 +89,20 @@ export const createCard = async (
   res: Response
 ) => {
   try {
-    const { userId, front, back } = req.body;
+    const { deckId, front, back } = req.body;
+
+    const deck = await Deck.findById(deckId);
+
+    if (!deck) {
+      return res.status(404).json({
+        message: "Card not found",
+      });
+    }
 
     const fsrsCard = createEmptyCard();
 
     const card = await Card.create({
-      userId,
+      deckId,
       front,
       back,
       ...fsrsCard,
@@ -123,6 +132,7 @@ export const updateCard = async (
       },
       {
         new: true,
+        runValidators: true,
       }
     );
 

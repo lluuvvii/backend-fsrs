@@ -1,8 +1,7 @@
 import { Schema, Types, model } from "mongoose";
 
-
 export interface ICard {
-  userId: Types.ObjectId;
+  deckId: Types.ObjectId;
 
   front: string;
   back: string;
@@ -26,9 +25,9 @@ export interface ICard {
 
 const cardSchema = new Schema<ICard>(
   {
-    userId: {
+    deckId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Deck",
       required: true,
     },
     front: {
