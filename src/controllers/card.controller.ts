@@ -26,6 +26,14 @@ export const getCardsByDeck = async (
   try {
     const { deckId } = req.params;
 
+    const deck = await Deck.findById(deckId);
+
+    if (!deck) {
+      return res.status(404).json({
+        message: "Deck not found",
+      });
+    }
+
     const cards = await Card.find({
       deckId,
     });
@@ -45,6 +53,14 @@ export const getDueCardsByDeck = async (
 ) => {
   try {
     const { deckId } = req.params;
+
+    const deck = await Deck.findById(deckId);
+
+    if (!deck) {
+      return res.status(404).json({
+        message: "Deck not found",
+      });
+    }
 
     const cards = await Card.find({
       deckId,
@@ -91,11 +107,44 @@ export const createCard = async (
   try {
     const { deckId, front, back } = req.body;
 
+    if (!deckId || !front || !back) {
+      return res.status(400).json({
+        message:
+          "Deck ID, front, and back are required",
+      });
+    }
+
+    if (front.trim().length === 0) {
+      return res.status(400).json({
+        message: "Front cannot be empty",
+      });
+    }
+
+    if (back.trim().length === 0) {
+      return res.status(400).json({
+        message: "Back cannot be empty",
+      });
+    }
+
+    if (front.length > 1000) {
+      return res.status(400).json({
+        message:
+          "Front must not exceed 1000 characters",
+      });
+    }
+
+    if (back.length > 1000) {
+      return res.status(400).json({
+        message:
+          "Back must not exceed 1000 characters",
+      });
+    }
+
     const deck = await Deck.findById(deckId);
 
     if (!deck) {
       return res.status(404).json({
-        message: "Card not found",
+        message: "Deck not found",
       });
     }
 
@@ -103,8 +152,8 @@ export const createCard = async (
 
     const card = await Card.create({
       deckId,
-      front,
-      back,
+      front: front.trim(),
+      back: back.trim(),
       ...fsrsCard,
     });
 
@@ -124,16 +173,18 @@ export const updateCard = async (
   try {
     const { front, back } = req.body;
 
-    const card = await Card.findByIdAndUpdate(
-      req.params.id,
-      {
-        front,
-        back,
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
+    if (
+      front === undefined &&
+      back === undefined
+    ) {
+      return res.status(400).json({
+        message:
+          "Front or back must be provided",
+      });
+    }
+
+    const card = await Card.findById(
+      req.params.id
     );
 
     if (!card) {
@@ -142,7 +193,53 @@ export const updateCard = async (
       });
     }
 
-    res.status(200).json(card);
+    const updateData: any = {};
+
+    if (front !== undefined) {
+      if (front.trim().length === 0) {
+        return res.status(400).json({
+          message: "Front cannot be empty",
+        });
+      }
+
+      if (front.length > 1000) {
+        return res.status(400).json({
+          message:
+            "Front must not exceed 1000 characters",
+        });
+      }
+
+      updateData.front = front.trim();
+    }
+
+    if (back !== undefined) {
+      if (back.trim().length === 0) {
+        return res.status(400).json({
+          message: "Back cannot be empty",
+        });
+      }
+
+      if (back.length > 1000) {
+        return res.status(400).json({
+          message:
+            "Back must not exceed 1000 characters",
+        });
+      }
+
+      updateData.back = back.trim();
+    }
+
+    const updatedCard =
+      await Card.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+    res.status(200).json(updatedCard);
   } catch (error) {
     res.status(500).json({
       message: "Failed to update card",

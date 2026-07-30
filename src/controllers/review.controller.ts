@@ -55,6 +55,12 @@ export const getReviewLogsByUser = async (
   try {
     const { userId } = req.params;
 
+    if (!userId) {
+      return res.status(400).json({
+        message: "User ID is required",
+      });
+    }
+
     const logs = await ReviewLog.find({
       userId,
     }).sort({
@@ -76,6 +82,20 @@ export const getReviewLogsByCard = async (
 ) => {
   try {
     const { cardId } = req.params;
+
+    if (!cardId) {
+      return res.status(400).json({
+        message: "Card ID is required",
+      });
+    }
+
+    const card = await Card.findById(cardId);
+
+    if (!card) {
+      return res.status(404).json({
+        message: "Card not found",
+      });
+    }
 
     const logs = await ReviewLog.find({
       cardId,
@@ -99,6 +119,18 @@ export const reviewCard = async (
   try {
     const { id } = req.params;
     const { rating } = req.body;
+
+    if (rating === undefined) {
+      return res.status(400).json({
+        message: "Rating is required",
+      });
+    }
+
+    if (isNaN(Number(rating))) {
+      return res.status(400).json({
+        message: "Rating must be a number",
+      });
+    }
 
     if (![1, 2, 3, 4].includes(Number(rating))) {
       return res.status(400).json({
@@ -124,7 +156,7 @@ export const reviewCard = async (
 
     const result = scheduler.next(
       card.toObject(),
-      new Date("2026-07-20T14:45:26.176Z"), // simulation test part, ex: "2026-06-30T07:38:07.481Z"
+      new Date(), // simulation test part, ex: "2026-06-30T07:38:07.481Z"
       Number(rating) as Grade
     );
 

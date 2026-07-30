@@ -22,8 +22,16 @@ export const getDecksByUser = async (
   res: Response
 ) => {
   try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({
+        message: "User ID is required",
+      });
+    }
+
     const decks = await Deck.find({
-      userId: req.params.userId,
+      userId,
     });
 
     res.status(200).json(decks);
@@ -67,10 +75,39 @@ export const createDeck = async (
     const { userId, name, description } =
       req.body;
 
+    if (!userId || !name) {
+      return res.status(400).json({
+        message: "User ID and deck name are required",
+      });
+    }
+
+    if (name.trim().length === 0) {
+      return res.status(400).json({
+        message: "Deck name cannot be empty",
+      });
+    }
+
+    if (name.trim().length > 100) {
+      return res.status(400).json({
+        message:
+          "Deck name must not exceed 100 characters",
+      });
+    }
+
+    if (
+      description &&
+      description.length > 500
+    ) {
+      return res.status(400).json({
+        message:
+          "Description must not exceed 500 characters",
+      });
+    }
+
     const deck = await Deck.create({
       userId,
-      name,
-      description,
+      name: name.trim(),
+      description: description?.trim() || "",
     });
 
     res.status(201).json(deck);
@@ -87,15 +124,11 @@ export const updateDeck = async (
   res: Response
 ) => {
   try {
-    const deck =
-      await Deck.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
+    const { name, description } = req.body;
+
+    const deck = await Deck.findById(
+      req.params.id
+    );
 
     if (!deck) {
       return res.status(404).json({
@@ -103,7 +136,54 @@ export const updateDeck = async (
       });
     }
 
-    res.status(200).json(deck);
+    if (
+      name !== undefined &&
+      name.trim().length === 0
+    ) {
+      return res.status(400).json({
+        message: "Deck name cannot be empty",
+      });
+    }
+
+    if (
+      name &&
+      name.trim().length > 100
+    ) {
+      return res.status(400).json({
+        message:
+          "Deck name must not exceed 100 characters",
+      });
+    }
+
+    if (
+      description &&
+      description.length > 500
+    ) {
+      return res.status(400).json({
+        message:
+          "Description must not exceed 500 characters",
+      });
+    }
+
+    const updatedDeck =
+      await Deck.findByIdAndUpdate(
+        req.params.id,
+        {
+          ...(name && {
+            name: name.trim(),
+          }),
+          ...(description !== undefined && {
+            description:
+              description.trim(),
+          }),
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+    res.status(200).json(updatedDeck);
   } catch (error) {
     res.status(500).json({
       message: "Failed to update deck",
