@@ -125,7 +125,7 @@ export const login = async (
       message: "Login success",
       token,
       user: {
-        _id: user._id,
+        id: user._id,
         username: user.username,
         email: user.email,
       },
