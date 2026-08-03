@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import User from "../models/User";
+import Deck from "../models/Deck";
+import Card from "../models/Card";
+import ReviewLog from "../models/ReviewLog";
 
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -291,6 +294,26 @@ export const deleteUser = async (
     if (!user) {
       return res.status(404).json({
         message: "User not found",
+      });
+    }
+
+    const decks = await Deck.find({
+      userId: req.params.id,
+    }).select("_id");
+
+    const deckIds = decks.map((d) => d._id);
+
+    await ReviewLog.deleteMany({
+      userId: req.params.id,
+    });
+
+    if (deckIds.length > 0) {
+      await Card.deleteMany({
+        deckId: { $in: deckIds },
+      });
+
+      await Deck.deleteMany({
+        userId: req.params.id,
       });
     }
 

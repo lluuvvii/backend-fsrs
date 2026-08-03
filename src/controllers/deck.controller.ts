@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import Deck from "../models/Deck";
+import Card from "../models/Card";
+import ReviewLog from "../models/ReviewLog";
 
 export const getDecks = async (
   req: Request,
@@ -207,6 +209,20 @@ export const deleteDeck = async (
         message: "Deck not found",
       });
     }
+
+    const cards = await Card.find({
+      deckId: req.params.id,
+    }).select("_id");
+
+    await ReviewLog.deleteMany({
+      cardId: {
+        $in: cards.map((c) => c._id),
+      },
+    });
+
+    await Card.deleteMany({
+      deckId: req.params.id,
+    });
 
     res.status(200).json({
       message: "Deck deleted",

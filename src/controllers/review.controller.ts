@@ -7,6 +7,13 @@ import Deck from "../models/Deck";
 
 const scheduler = fsrs();
 
+const parseNow = (raw?: string): Date => {
+  if (raw && !isNaN(Date.parse(raw))) {
+    return new Date(raw);
+  }
+  return new Date();
+};
+
 export const getReviewLogs = async (
   req: Request,
   res: Response
@@ -118,7 +125,7 @@ export const reviewCard = async (
 ) => {
   try {
     const { id } = req.params;
-    const { rating } = req.body;
+    const { rating, now } = req.body;
 
     if (rating === undefined) {
       return res.status(400).json({
@@ -156,7 +163,7 @@ export const reviewCard = async (
 
     const result = scheduler.next(
       card.toObject(),
-      new Date(), // simulation test part, ex: "2026-06-30T07:38:07.481Z"
+      parseNow(typeof now === "string" ? now : undefined), // simulation test part, ex: "2026-06-30T07:38:07.481Z"
       Number(rating) as Grade
     );
 

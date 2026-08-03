@@ -1,7 +1,15 @@
 import { Request, Response } from "express";
 import Card from "../models/Card";
-import { createEmptyCard } from "ts-fsrs";
+import ReviewLog from "../models/ReviewLog";
+import { createEmptyCard, fsrs, Grade } from "ts-fsrs";
 import Deck from "../models/Deck";
+
+const parseNow = (raw?: string): Date => {
+  if (raw && !isNaN(Date.parse(raw))) {
+    return new Date(raw);
+  }
+  return new Date();
+};
 
 export const getCards = async (
   req: Request,
@@ -65,7 +73,11 @@ export const getDueCardsByDeck = async (
     const cards = await Card.find({
       deckId,
       due: {
-        $lte: new Date(),
+        $lte: parseNow(
+          typeof req.query.now === "string"
+            ? req.query.now
+            : undefined
+        ),
       },
     });
 
@@ -95,6 +107,53 @@ export const getCardById = async (
   } catch (error) {
     res.status(500).json({
       message: "Failed to get card",
+      error,
+    });
+  }
+};
+
+export const previewCard = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const card = await Card.findById(req.params.id);
+
+    if (!card) {
+      return res.status(404).json({
+        message: "Card not found",
+      });
+    }
+
+    const scheduler = fsrs();
+    const preview = scheduler.repeat(
+      card.toObject(),
+      parseNow(
+        typeof req.query.now === "string"
+          ? req.query.now
+          : undefined
+      )
+    );
+
+    const result: Record<
+      number,
+      { due: Date; scheduled_days: number }
+    > = {};
+
+    (Object.keys(preview) as unknown as Grade[]).forEach(
+      (rating) => {
+        result[Number(rating)] = {
+          due: preview[rating].card.due,
+          scheduled_days:
+            preview[rating].card.scheduled_days,
+        };
+      }
+    );
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to preview card",
       error,
     });
   }
@@ -262,6 +321,10 @@ export const deleteCard = async (
         message: "Card not found",
       });
     }
+
+    await ReviewLog.deleteMany({
+      cardId: req.params.id,
+    });
 
     res.status(200).json({
       message: "Card deleted successfully",

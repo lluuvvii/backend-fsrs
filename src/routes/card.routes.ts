@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getCards, getCardsByDeck, getDueCardsByDeck, getCardById, createCard, updateCard, deleteCard } from "../controllers/card.controller";
+import { getCards, getCardsByDeck, getDueCardsByDeck, getCardById, previewCard, createCard, updateCard, deleteCard } from "../controllers/card.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const router = Router();
@@ -11,6 +11,8 @@ router.get("/", getCards);
 router.get("/deck/:deckId/due", getDueCardsByDeck);
 
 router.get("/deck/:deckId", getCardsByDeck);
+
+router.get("/:id/preview", previewCard);
 
 router.get("/:id", getCardById);
 
